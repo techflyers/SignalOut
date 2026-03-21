@@ -14,6 +14,7 @@ This project is a fork of the original project bitchat with a WhatsApp-style UI 
 ## Install SignalOut
 
 You can download the alpha version of SignalOut for Android from the [GitHub Releases page](https://github.com/techflyers/SignalOut/releases)
+
 Direct Download: [<img src="https://upload.wikimedia.org/wikipedia/commons/8/8d/Download_alt_font_awesome.svg" alt="Download Logo" width="32">](https://github.com/techflyers/SignalOut/releases/download/0.1.0-alpha/app-universal-release.apk)
 
 **Instructions:**
