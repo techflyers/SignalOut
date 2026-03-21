@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+## [1.5.0-alpha] - First Alpha Release
+### Added
+- WhatsApp-style UI redesign (themes, bubbles, chat background, input bar, private chat with view status).
+- Voice and Video calling via WebRTC.
+- File and Media attachment support (images, videos, audio, documents).
+
+### Known Issues
+- Video calling is currently unstable.
+- Typing indicators may not work reliably.
+- Crashing issues present on Android API 30 and lower.
+- Unnecessary requirement for Bluetooth pairing requests on Android 14 and above.
+
 ## [1.4.0] - 2025-10-15
 ### Fixed
 - fix: Resolve debug settings bottom sheet crash on some devices (Issue #472)

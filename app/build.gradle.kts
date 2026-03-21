@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "com.bitchat.android"
+    namespace = "com.signalout.android"
     compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
-        applicationId = "com.bitchat.droid"
+        applicationId = "com.signalout.droid"
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = libs.versions.targetSdk.get().toInt()
         versionCode = 32
@@ -123,6 +123,9 @@ dependencies {
     
     // Coroutines
     implementation(libs.kotlinx.coroutines.android)
+    
+    // WebRTC
+    implementation(libs.stream.webrtc)
     
     // Bluetooth
     implementation(libs.nordic.ble)

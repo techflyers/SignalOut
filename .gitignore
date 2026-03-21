@@ -1,4 +1,4 @@
-# Android Studio / IntelliJ
+# Android Studio / IntelliJ / vscode
 .idea/
 *.iml
 build/
@@ -13,6 +13,7 @@ debug_keystore/
 *.keystore
 debug.keystore
 app/release
+.vscode/
 
 # Gradle
 /build/

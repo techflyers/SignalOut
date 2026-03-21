@@ -1,23 +1,19 @@
 <p align="center">
-    <img src="https://github.com/user-attachments/assets/188c42f8-d249-4a72-b27a-e2b4f10a00a8" alt="Bitchat Android Logo" width="480">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/a/a2/Bluetooth_Chat_Interface.png" alt="Signalout Android Logo" width="480">
 </p>
 
 > [!WARNING]
-> This software has not received external security review and may contain vulnerabilities and may not necessarily meet its stated security goals. Do not use it for sensitive use cases, and do not rely on its security until it has been reviewed. Work in progress.
+> This is an experimental software based on [bitchat-android](https://github.com/permissionlesstech/bitchat-android) Expect bugs and instability.
 
-# bitchat for Android
+# SignalOut for Android
 
-A secure, decentralized, peer-to-peer messaging app that works over Bluetooth mesh networks. No internet required for mesh chats, no servers, no phone numbers - just pure encrypted communication. Bitchat also supports geohash channels, which use an internet connection to connect you with others in your geographic area.
+A secure, decentralized, peer-to-peer messaging app that works over Bluetooth mesh networks. No internet required for mesh chats, no servers, no phone numbers - just pure encrypted communication. SignalOut also supports geohash channels, which use an internet connection to connect you with others in your geographic area.
 
-This is the **Android port** of the original [bitchat iOS app](https://github.com/jackjackbits/bitchat), maintaining 100% protocol compatibility for cross-platform communication.
+This project is a fork of the original project bitchat with a WhatsApp-style UI redesign and new features. It maintains protocol compatibility where applicable.
 
-## Install bitchat
+## Install SignalOut
 
-You can download the latest version of bitchat for Android from the [GitHub Releases page](https://github.com/permissionlesstech/bitchat-android/releases).
-
-Or you can:
-
-[<img alt="Get it on Google Play" height="60" src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png"/>](https://play.google.com/store/apps/details?id=com.bitchat.droid)
+You can download the latest version of SignalOut for Android from the [GitHub Releases page]
 
 **Instructions:**
 
@@ -31,7 +27,10 @@ This project is released into the public domain. See the [LICENSE](LICENSE.md) f
 
 ## Features
 
-- **✅ Cross-Platform Compatible**: Full protocol compatibility with iOS bitchat
+- **✅ WhatsApp UI Redesign**: Modern WhatsApp-like interface including dark/light themes, typography, custom message bubbles, doodle patterns, and redesigned chat headers/inputs.
+- **✅ Voice & Video Calling over WIFI Direct**: Real-time voice and video calling powered by WebRTC.
+- **✅ File & Media Attachments**: Support for sending documents, images, and audio directly in chats.
+- **✅ Cross-Platform Compatible**: Full protocol compatibility with iOS SignalOut
 - **✅ Decentralized Mesh Network**: Automatic peer discovery and multi-hop message relay over Bluetooth LE
 - **✅ End-to-End Encryption**: X25519 key exchange + AES-256-GCM for private messages
 - **✅ Channel-Based Chats**: Topic-based group messaging with optional password protection
@@ -57,14 +56,14 @@ This project is released into the public domain. See the [LICENSE](LICENSE.md) f
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/permissionlesstech/bitchat-android.git
-   cd bitchat-android
+   git clone https://github.com/techflyers/signalout.git
+   cd signalout
    ```
 
 2. **Open in Android Studio:**
    ```bash
    # Open Android Studio and select "Open an Existing Project"
-   # Navigate to the bitchat-android directory
+   # Navigate to the signalout directory
    ```
 
 3. **Build the project:**
@@ -131,9 +130,9 @@ The app requires the following permissions (automatically requested):
 
 1. **Install the app** on your Android device (requires Android 8.0+)
 2. **Grant permissions** for Bluetooth and location when prompted
-3. **Launch bitchat** - it will auto-start mesh networking
+3. **Launch signalout** - it will auto-start mesh networking
 4. **Set your nickname** or use the auto-generated one
-5. **Connect automatically** to nearby iOS and Android bitchat users
+5. **Connect automatically** to nearby iOS and Android signalout users
 6. **Join a channel** with `/j #general` or start chatting in public
 7. **Messages relay** through the mesh network to reach distant peers
 
@@ -192,7 +191,7 @@ The app requires the following permissions (automatically requested):
 ## Technical Architecture
 
 ### Binary Protocol
-bitchat uses an efficient binary protocol optimized for Bluetooth LE:
+signalout uses an efficient binary protocol optimized for Bluetooth LE:
 - Compact packet format with 1-byte type field
 - TTL-based message routing (max 7 hops)
 - Automatic fragmentation for large messages
@@ -215,7 +214,7 @@ bitchat uses an efficient binary protocol optimized for Bluetooth LE:
 
 ### Core Components
 
-1. **BitchatApplication.kt**: Application-level initialization and dependency injection
+1. **SignaloutApplication.kt**: Application-level initialization and dependency injection
 2. **MainActivity.kt**: Main activity handling permissions and UI hosting
 3. **ChatViewModel.kt**: MVVM pattern managing app state and business logic
 4. **BluetoothMeshService.kt**: Core BLE mesh networking (central + peripheral roles)
@@ -231,15 +230,7 @@ bitchat uses an efficient binary protocol optimized for Bluetooth LE:
 - **Kotlin Coroutines**: Asynchronous programming
 - **LZ4**: Message compression (when enabled)
 - **EncryptedSharedPreferences**: Secure local storage
-
-### Binary Protocol Compatibility
-
-The Android implementation maintains 100% binary protocol compatibility with iOS:
-- **Header Format**: Identical 13-byte header structure
-- **Packet Types**: Same message types and routing logic
-- **Encryption**: Identical cryptographic algorithms and key exchange
-- **UUIDs**: Same Bluetooth service and characteristic identifiers
-- **Fragmentation**: Compatible message fragmentation for large content
+- **WebRTC**: Voice and video calling
 
 ## Publishing to Google Play
 
@@ -264,45 +255,12 @@ The Android implementation maintains 100% binary protocol compatibility with iOS
    ./gradlew bundleRelease
    ```
 
-### Play Store Requirements
 
-- **Target API**: Latest Android API (currently 34)
-- **Privacy Policy**: Required for apps requesting sensitive permissions
-- **App Permissions**: Justify Bluetooth and location usage
-- **Content Rating**: Complete questionnaire for age-appropriate content
+## Future Implementations
 
-### Distribution
+1. **LoRA**: Planned support for long-range transmission of emergency messages using LoRA technology.
+2. **AI Routing**: Using AI to route messages based on priority, urgency of message, availability of peers and network conditions through the mesh network.
 
-- **Google Play Store**: Main distribution channel
-- **F-Droid**: For open-source distribution
-- **Direct APK**: For testing and development
 
-## Cross-Platform Communication
-
-This Android port enables seamless communication with the original iOS bitchat app:
-
-- **iPhone ↔ Android**: Full bidirectional messaging
-- **Mixed Groups**: iOS and Android users in same channels
-- **Feature Parity**: All commands and encryption work across platforms
-- **Protocol Sync**: Identical message format and routing behavior
-
-**iOS Version**: For iPhone/iPad users, get the original bitchat at [github.com/jackjackbits/bitchat](https://github.com/jackjackbits/bitchat)
-
-## Contributing
-
-Contributions are welcome! Key areas for enhancement:
-
-1. **Performance**: Battery optimization and connection reliability
-2. **UI/UX**: Additional Material Design 3 features
-3. **Security**: Enhanced cryptographic features
-4. **Testing**: Unit and integration test coverage
-5. **Documentation**: API documentation and development guides
-
-## Support & Issues
-
-- **Bug Reports**: [Create an issue](../../issues) with device info and logs
-- **Feature Requests**: [Start a discussion](https://github.com/orgs/permissionlesstech/discussions)
-- **Security Issues**: Email security concerns privately
-- **iOS Compatibility**: Cross-reference with [original iOS repo](https://github.com/jackjackbits/bitchat)
-
-For iOS-specific issues, please refer to the [original iOS bitchat repository](https://github.com/jackjackbits/bitchat).
+---
+*Created using Antigravity.*
