@@ -174,6 +174,8 @@ class ChatViewModel(
     val showVerificationSheet: StateFlow<Boolean> = state.showVerificationSheet
     val showSecurityVerificationSheet: StateFlow<Boolean> = state.showSecurityVerificationSheet
     val selectedLocationChannel: StateFlow<com.signalout.android.geohash.ChannelID?> = state.selectedLocationChannel
+    val selectedTab: StateFlow<MainTab> = state.selectedTab
+    val activeChatPeer: StateFlow<String?> = state.activeChatPeer
     val isTeleported: StateFlow<Boolean> = state.isTeleported
     val geohashPeople: StateFlow<List<GeoPerson>> = state.geohashPeople
     val teleportedGeo: StateFlow<Set<String>> = state.teleportedGeo
@@ -830,6 +832,20 @@ class ChatViewModel(
         state.setPrivateChatSheetPeer(null)
     }
 
+    fun selectTab(tab: MainTab) {
+        state.setSelectedTab(tab)
+    }
+
+    fun openFullScreenChat(peerID: String) {
+        state.setActiveChatPeer(peerID)
+        startPrivateChat(peerID)
+    }
+
+    fun closeFullScreenChat() {
+        state.setActiveChatPeer(null)
+        endPrivateChat()
+    }
+
     fun getPeerFingerprintForDisplay(peerID: String): String? {
         return verificationHandler.getPeerFingerprintForDisplay(peerID)
     }
@@ -1120,6 +1136,11 @@ class ChatViewModel(
      */
     fun handleBackPressed(): Boolean {
         return when {
+            // Close full-screen private chat first
+            state.getActiveChatPeerValue() != null -> {
+                closeFullScreenChat()
+                true
+            }
             // Close app info dialog
             state.getShowAppInfoValue() -> {
                 hideAppInfo()
@@ -1131,7 +1152,7 @@ class ChatViewModel(
                 state.setPasswordPromptChannel(null)
                 true
             }
-            // Exit private chat
+            // Exit private chat (legacy sheet path)
             state.getSelectedPrivateChatPeerValue() != null || state.getPrivateChatSheetPeerValue() != null -> {
                 endPrivateChat()
                 true
@@ -1139,6 +1160,11 @@ class ChatViewModel(
             // Exit channel view
             state.getCurrentChannelValue() != null -> {
                 switchToChannel(null)
+                true
+            }
+            // If on Channels tab, go back to Chats tab
+            state.getSelectedTabValue() == MainTab.CHANNELS -> {
+                selectTab(MainTab.CHATS)
                 true
             }
             // No special navigation state - let system handle (usually exits app)

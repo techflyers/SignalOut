@@ -36,7 +36,7 @@ import com.signalout.android.onboarding.OnboardingCoordinator
 import com.signalout.android.onboarding.OnboardingState
 import com.signalout.android.onboarding.PermissionExplanationScreen
 import com.signalout.android.onboarding.PermissionManager
-import com.signalout.android.ui.ChatScreen
+import com.signalout.android.ui.MainScreen
 import com.signalout.android.ui.ChatViewModel
 import com.signalout.android.ui.OrientationAwareActivity
 import com.signalout.android.ui.theme.SignaloutTheme
@@ -310,7 +310,7 @@ class MainActivity : OrientationAwareActivity() {
                 
                 androidx.compose.foundation.layout.Box(modifier = Modifier.fillMaxSize()) {
                     val isCallActive = callState !is com.signalout.android.call.CallState.Idle && callState !is com.signalout.android.call.CallState.Ended
-                    ChatScreen(viewModel = chatViewModel, isCallActive = isCallActive)
+                    MainScreen(viewModel = chatViewModel, isCallActive = isCallActive)
                     
                     if (isCallActive) {
                         val isVideo = when (val state = callState) {
@@ -797,9 +797,8 @@ class MainActivity : OrientationAwareActivity() {
                 if (peerID != null) {
                     Log.d("MainActivity", "Opening private chat with $senderNickname (peerID: $peerID) from notification")
                     
-                    // Open the private chat sheet with this peer
-                    chatViewModel.showMeshPeerList()
-                    chatViewModel.showPrivateChatSheet(peerID)
+                    // Open the private chat directly as full-screen
+                    chatViewModel.openFullScreenChat(peerID)
                     
                     // Clear notifications for this sender since user is now viewing the chat
                     chatViewModel.clearNotificationsForSender(peerID)

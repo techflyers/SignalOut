@@ -258,7 +258,7 @@ fun ChatScreen(viewModel: ChatViewModel, isCallActive: Boolean = false) {
             nickname = nickname,
             viewModel = viewModel,
             colorScheme = colorScheme,
-            onSidebarToggle = { viewModel.showMeshPeerList() },
+            onSidebarToggle = { viewModel.selectTab(MainTab.CHATS) },
             onShowAppInfo = { viewModel.showAppInfo() },
             onPanicClear = { viewModel.panicClearAllData() },
             onLocationChannelsClick = { showLocationChannelsSheet = true },
@@ -351,8 +351,6 @@ fun ChatScreen(viewModel: ChatViewModel, isCallActive: Boolean = false) {
         onVerificationSheetDismiss = viewModel::hideVerificationSheet,
         showSecurityVerificationSheet = showSecurityVerificationSheet,
         onSecurityVerificationSheetDismiss = viewModel::hideSecurityVerificationSheet,
-        showMeshPeerListSheet = showMeshPeerListSheet,
-        onMeshPeerListDismiss = viewModel::hideMeshPeerList,
     )
 }
 
@@ -500,8 +498,6 @@ private fun ChatDialogs(
     onVerificationSheetDismiss: () -> Unit,
     showSecurityVerificationSheet: Boolean,
     onSecurityVerificationSheetDismiss: () -> Unit,
-    showMeshPeerListSheet: Boolean,
-    onMeshPeerListDismiss: () -> Unit,
 ) {
     val privateChatSheetPeer by viewModel.privateChatSheetPeer.collectAsStateWithLifecycle()
 
@@ -560,19 +556,6 @@ private fun ChatDialogs(
             viewModel = viewModel
         )
     }
-    // MeshPeerList sheet (network view)
-    if (showMeshPeerListSheet){
-        MeshPeerListSheet(
-            isPresented = showMeshPeerListSheet,
-            viewModel = viewModel,
-            onDismiss = onMeshPeerListDismiss,
-            onShowVerification = {
-                onMeshPeerListDismiss()
-                viewModel.showVerificationSheet(fromSidebar = true)
-            }
-        )
-    }
-
     if (showVerificationSheet) {
         VerificationSheet(
             isPresented = showVerificationSheet,
@@ -589,6 +572,7 @@ private fun ChatDialogs(
         )
     }
 
+    // Legacy PrivateChatSheet kept for backwards compatibility (e.g. from MeshPeerListSheet)
     if (privateChatSheetPeer != null) {
         PrivateChatSheet(
             isPresented = true,

@@ -14,6 +14,11 @@ import kotlinx.coroutines.flow.stateIn
  * Centralized state definitions and data classes for the chat system
  */
 
+// Tab enum for bottom navigation
+enum class MainTab {
+    CHATS, CHANNELS
+}
+
 // Command suggestion data class
 data class CommandSuggestion(
     val command: String,
@@ -134,6 +139,14 @@ class ChatState(
 
     private val _showSecurityVerificationSheet = MutableStateFlow(false)
     val showSecurityVerificationSheet: StateFlow<Boolean> = _showSecurityVerificationSheet.asStateFlow()
+
+    // Bottom nav tab selection (CHATS is default)
+    private val _selectedTab = MutableStateFlow(MainTab.CHATS)
+    val selectedTab: StateFlow<MainTab> = _selectedTab.asStateFlow()
+
+    // Full-screen private chat peer (replaces bottom-sheet overlay)
+    private val _activeChatPeer = MutableStateFlow<String?>(null)
+    val activeChatPeer: StateFlow<String?> = _activeChatPeer.asStateFlow()
     
     // Location channels state (for Nostr geohash features)
     private val _selectedLocationChannel = MutableStateFlow<com.signalout.android.geohash.ChannelID?>(com.signalout.android.geohash.ChannelID.Mesh)
@@ -196,6 +209,8 @@ class ChatState(
 
     fun getShowMeshPeerListValue() = _showMeshPeerList.value
     fun getPrivateChatSheetPeerValue() = _privateChatSheetPeer.value
+    fun getSelectedTabValue() = _selectedTab.value
+    fun getActiveChatPeerValue() = _activeChatPeer.value
 
     fun getTeleportedGeoValue() = _teleportedGeo.value
     fun getGeohashParticipantCountsValue() = _geohashParticipantCounts.value
@@ -356,5 +371,13 @@ class ChatState(
 
     fun setPrivateChatSheetPeer(peerID: String?) {
         _privateChatSheetPeer.value = peerID
+    }
+
+    fun setSelectedTab(tab: MainTab) {
+        _selectedTab.value = tab
+    }
+
+    fun setActiveChatPeer(peerID: String?) {
+        _activeChatPeer.value = peerID
     }
 }
