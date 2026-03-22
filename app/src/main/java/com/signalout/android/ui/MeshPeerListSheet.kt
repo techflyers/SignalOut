@@ -915,6 +915,9 @@ fun PrivateChatSheet(
                         onMessageTextChange = { newText ->
                             messageText = newText
                             viewModel.updateMentionSuggestions(newText.text)
+                            if (newText.text.isNotEmpty()) {
+                                viewModel.sendTypingIndicator(peerID)
+                            }
                         },
                         onSend = {
                             if (messageText.text.trim().isNotEmpty()) {

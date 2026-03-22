@@ -158,6 +158,7 @@ class PacketProcessor(private val myPeerID: String) {
                         MessageType.FILE_TRANSFER -> handleMessage(routed)
                         MessageType.CALL_OFFER, MessageType.CALL_ANSWER, MessageType.CALL_ICE,
                         MessageType.CALL_HANGUP, MessageType.CALL_REJECT, MessageType.CALL_BUSY -> handleCallSignaling(routed)
+                        MessageType.TYPING_INDICATOR -> handleTypingIndicator(routed)
                         else -> {
                             validPacket = false
                             Log.w(TAG, "Unknown message type: ${packet.type}")
@@ -258,6 +259,15 @@ class PacketProcessor(private val myPeerID: String) {
     }
     
     /**
+     * Handle typing indicator
+     */
+    private suspend fun handleTypingIndicator(routed: RoutedPacket) {
+        val peerID = routed.peerID ?: "unknown"
+        Log.d(TAG, "Processing Typing Indicator from ${formatPeerForLog(peerID)}")
+        delegate?.handleTypingIndicator(routed)
+    }
+    
+    /**
      * Handle delivery acknowledgment
      */
 //    private suspend fun handleDeliveryAck(routed: RoutedPacket) {
@@ -333,6 +343,7 @@ interface PacketProcessorDelegate {
     
     // Communication
     fun handleCallSignaling(routed: RoutedPacket)
+    fun handleTypingIndicator(routed: RoutedPacket)
     fun sendAnnouncementToPeer(peerID: String)
     fun sendCachedMessages(peerID: String)
     fun relayPacket(routed: RoutedPacket)

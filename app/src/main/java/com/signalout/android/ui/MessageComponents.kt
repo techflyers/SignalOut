@@ -326,32 +326,13 @@ private fun SystemMessageBubble(
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start) {
                 Box {
                     if (packet != null) {
-                        if (overrideProgress != null) {
-                            com.signalout.android.ui.media.FileSendingAnimation(
-                                fileName = packet.fileName,
-                                progress = overrideProgress,
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                        } else {
-                            FileMessageItem(
-                                packet = packet,
-                                onFileClick = {}
-                            )
-                        }
                         val showCancel = isSelf && (message.deliveryStatus is DeliveryStatus.PartiallyDelivered)
-                        if (showCancel) {
-                            Box(
-                                modifier = Modifier
-                                    .align(Alignment.TopEnd)
-                                    .padding(4.dp)
-                                    .size(22.dp)
-                                    .background(Color.Gray.copy(alpha = 0.6f), CircleShape)
-                                    .clickable { onCancelTransfer?.invoke(message) },
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(imageVector = Icons.Filled.Close, contentDescription = stringResource(R.string.cd_cancel), tint = Color.White, modifier = Modifier.size(14.dp))
-                            }
-                        }
+                        FileMessageItem(
+                            packet = packet,
+                            uploadProgress = overrideProgress,
+                            onCancelUpload = if (showCancel) { { onCancelTransfer?.invoke(message) } } else null,
+                            onFileClick = {}
+                        )
                     } else {
                         Text(text = stringResource(R.string.file_unavailable), color = Color.Gray)
                     }

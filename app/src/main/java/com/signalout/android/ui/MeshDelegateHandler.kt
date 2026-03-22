@@ -234,6 +234,10 @@ class MeshDelegateHandler(
         return privateChatManager.isFavorite(peerID)
     }
     
+    override fun onPeerTyping(peerID: String) {
+        // Handled by ChatViewModel directly
+    }
+    
     /**
      * Check for mentions in mesh messages and trigger notifications
      */

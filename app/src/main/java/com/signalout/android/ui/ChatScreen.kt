@@ -39,7 +39,7 @@ import com.signalout.android.ui.media.FullScreenImageViewer
  * - ChatUIUtils: Utility functions for formatting and colors
  */
 @Composable
-fun ChatScreen(viewModel: ChatViewModel) {
+fun ChatScreen(viewModel: ChatViewModel, isCallActive: Boolean = false) {
     val colorScheme = MaterialTheme.colorScheme
     val messages by viewModel.messages.collectAsStateWithLifecycle()
     val connectedPeers by viewModel.connectedPeers.collectAsStateWithLifecycle()
@@ -195,55 +195,60 @@ fun ChatScreen(viewModel: ChatViewModel) {
         }
     }
 
-    ChatInputSection(
-        messageText = messageText,
-        onMessageTextChange = { newText: TextFieldValue ->
-            messageText = newText
-            viewModel.updateCommandSuggestions(newText.text)
-            viewModel.updateMentionSuggestions(newText.text)
-        },
-        onSend = {
-            if (messageText.text.trim().isNotEmpty()) {
-                viewModel.sendMessage(messageText.text.trim())
-                messageText = TextFieldValue("")
-                forceScrollToBottom = !forceScrollToBottom // Toggle to trigger scroll
-            }
-        },
-        onSendVoiceNote = { peer, onionOrChannel, path ->
-            viewModel.sendVoiceNote(peer, onionOrChannel, path)
-        },
-        onSendImageNote = { peer, onionOrChannel, path ->
-            viewModel.sendImageNote(peer, onionOrChannel, path)
-        },
-        onSendFileNote = { peer, onionOrChannel, path ->
-            viewModel.sendFileNote(peer, onionOrChannel, path)
-        },
-        
-        showCommandSuggestions = showCommandSuggestions,
-        commandSuggestions = commandSuggestions,
-        showMentionSuggestions = showMentionSuggestions,
-        mentionSuggestions = mentionSuggestions,
-        onCommandSuggestionClick = { suggestion: CommandSuggestion ->
-                    val commandText = viewModel.selectCommandSuggestion(suggestion)
-                    messageText = TextFieldValue(
-                        text = commandText,
-                        selection = TextRange(commandText.length)
-                    )
-                },
-                onMentionSuggestionClick = { mention: String ->
-                    val mentionText = viewModel.selectMentionSuggestion(mention, messageText.text)
-                    messageText = TextFieldValue(
-                        text = mentionText,
-                        selection = TextRange(mentionText.length)
-                    )
-                },
-                selectedPrivatePeer = null,
-                currentChannel = currentChannel,
-                nickname = nickname,
-                colorScheme = colorScheme,
-                showMediaButtons = showMediaButtons
-            )
+    if (!isCallActive) {
+        ChatInputSection(
+            messageText = messageText,
+            onMessageTextChange = { newText: TextFieldValue ->
+                messageText = newText
+                viewModel.updateCommandSuggestions(newText.text)
+                viewModel.updateMentionSuggestions(newText.text)
+                if (newText.text.isNotEmpty()) {
+                    viewModel.sendTypingIndicator()
+                }
+            },
+            onSend = {
+                if (messageText.text.trim().isNotEmpty()) {
+                    viewModel.sendMessage(messageText.text.trim())
+                    messageText = TextFieldValue("")
+                    forceScrollToBottom = !forceScrollToBottom // Toggle to trigger scroll
+                }
+            },
+            onSendVoiceNote = { peer, onionOrChannel, path ->
+                viewModel.sendVoiceNote(peer, onionOrChannel, path)
+            },
+            onSendImageNote = { peer, onionOrChannel, path ->
+                viewModel.sendImageNote(peer, onionOrChannel, path)
+            },
+            onSendFileNote = { peer, onionOrChannel, path ->
+                viewModel.sendFileNote(peer, onionOrChannel, path)
+            },
+            
+            showCommandSuggestions = showCommandSuggestions,
+            commandSuggestions = commandSuggestions,
+            showMentionSuggestions = showMentionSuggestions,
+            mentionSuggestions = mentionSuggestions,
+            onCommandSuggestionClick = { suggestion: CommandSuggestion ->
+                        val commandText = viewModel.selectCommandSuggestion(suggestion)
+                        messageText = TextFieldValue(
+                            text = commandText,
+                            selection = TextRange(commandText.length)
+                        )
+                    },
+                    onMentionSuggestionClick = { mention: String ->
+                        val mentionText = viewModel.selectMentionSuggestion(mention, messageText.text)
+                        messageText = TextFieldValue(
+                            text = mentionText,
+                            selection = TextRange(mentionText.length)
+                        )
+                    },
+                    selectedPrivatePeer = null,
+                    currentChannel = currentChannel,
+                    nickname = nickname,
+                    colorScheme = colorScheme,
+                    showMediaButtons = showMediaButtons
+                )
         }
+    }
 
         // Floating header - positioned absolutely at top, ignores keyboard
         ChatFloatingHeader(
@@ -512,9 +517,12 @@ private fun ChatDialogs(
 
     // About sheet
     var showDebugSheet by remember { mutableStateOf(false) }
+    val aboutNickname by viewModel.nickname.collectAsStateWithLifecycle()
     AboutSheet(
         isPresented = showAppInfo,
         onDismiss = onAppInfoDismiss,
+        nickname = aboutNickname,
+        onNicknameChange = viewModel::setNickname,
         onShowDebug = { showDebugSheet = true }
     )
     if (showDebugSheet) {

@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Speed
+import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -199,6 +200,8 @@ private fun SettingsToggleRow(
 fun AboutSheet(
     isPresented: Boolean,
     onDismiss: () -> Unit,
+    nickname: String = "",
+    onNicknameChange: (String) -> Unit = {},
     onShowDebug: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
@@ -271,6 +274,36 @@ fun AboutSheet(
                                 color = colorScheme.onBackground.copy(alpha = 0.6f),
                                 modifier = Modifier.padding(top = 4.dp)
                             )
+                        }
+                    }
+
+                    // Your Handle Section (moved from header navbar)
+                    item(key = "handle") {
+                        Column(modifier = Modifier.padding(horizontal = 20.dp)) {
+                            Text(
+                                text = "YOUR HANDLE",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = colorScheme.onBackground.copy(alpha = 0.5f),
+                                letterSpacing = 0.5.sp,
+                                modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
+                            )
+                            Surface(
+                                modifier = Modifier.fillMaxWidth(),
+                                color = colorScheme.surface,
+                                shape = RoundedCornerShape(16.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    NicknameEditor(
+                                        value = nickname,
+                                        onValueChange = onNicknameChange
+                                    )
+                                }
+                            }
                         }
                     }
 
@@ -368,6 +401,7 @@ fun AboutSheet(
                         LaunchedEffect(Unit) { PoWPreferenceManager.init(context) }
                         val powEnabled by PoWPreferenceManager.powEnabled.collectAsState()
                         val powDifficulty by PoWPreferenceManager.powDifficulty.collectAsState()
+                        var typingIndicatorsEnabled by remember { mutableStateOf(com.signalout.android.ui.TypingIndicatorPreferences.isEnabled(context)) }
                         var backgroundEnabled by remember { mutableStateOf(com.signalout.android.service.MeshServicePreferences.isBackgroundEnabled(true)) }
                         val torMode = remember { mutableStateOf(TorPreferenceManager.get(context)) }
                         val torProvider = remember { ArtiTorManager.getInstance() }
@@ -417,6 +451,23 @@ fun AboutSheet(
                                         subtitle = stringResource(R.string.about_pow_tip),
                                         checked = powEnabled,
                                         onCheckedChange = { PoWPreferenceManager.setPowEnabled(it) }
+                                    )
+                                    
+                                    HorizontalDivider(
+                                        modifier = Modifier.padding(start = 56.dp),
+                                        color = colorScheme.outline.copy(alpha = 0.12f)
+                                    )
+                                    
+                                    // Typing Indicators Toggle
+                                    SettingsToggleRow(
+                                        icon = Icons.Filled.Keyboard,
+                                        title = stringResource(R.string.about_typing_indicators),
+                                        subtitle = stringResource(R.string.about_typing_indicators_tip),
+                                        checked = typingIndicatorsEnabled,
+                                        onCheckedChange = { enabled ->
+                                            typingIndicatorsEnabled = enabled
+                                            com.signalout.android.ui.TypingIndicatorPreferences.setEnabled(context, enabled)
+                                        }
                                     )
                                     
                                     HorizontalDivider(

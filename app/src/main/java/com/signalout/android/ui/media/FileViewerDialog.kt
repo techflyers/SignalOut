@@ -1,8 +1,13 @@
 package com.signalout.android.ui.media
 
 import android.content.ActivityNotFoundException
+import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
+import android.os.Build
+import android.os.Environment
+import android.provider.MediaStore
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -26,7 +31,9 @@ import androidx.compose.ui.window.Dialog
 import com.signalout.android.R
 import com.signalout.android.features.file.FileUtils
 import com.signalout.android.model.SignaloutFilePacket
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 
 /**
@@ -89,19 +96,12 @@ fun FileViewerDialog(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    // Open/Save button
+                    // Open button - opens file with system viewer
                     Button(
                         onClick = {
                             coroutineScope.launch {
-                                // Try to save to Downloads first
-                                try {
-                                    onSaveToDevice(packet.content, packet.fileName)
-                                    onDismiss()
-                                } catch (e: Exception) {
-                                    // If save fails, try to open directly
-                                    tryOpenFile(context, packet)
-                                    onDismiss()
-                                }
+                                openFileWithViewer(context, packet)
+                                onDismiss()
                             }
                         },
                         modifier = Modifier.weight(1f),
@@ -112,16 +112,44 @@ fun FileViewerDialog(
                         Text(stringResource(R.string.file_viewer_open_save))
                     }
 
-                    // Dismiss button
+                    // Save button - saves to Downloads
                     Button(
-                        onClick = onDismiss,
+                        onClick = {
+                            coroutineScope.launch {
+                                val saved = saveFileToDownloads(context, packet)
+                                if (saved) {
+                                    withContext(Dispatchers.Main) {
+                                        Toast.makeText(context, "Saved to Downloads: ${packet.fileName}", Toast.LENGTH_SHORT).show()
+                                    }
+                                } else {
+                                    withContext(Dispatchers.Main) {
+                                        Toast.makeText(context, "Failed to save file", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                                onDismiss()
+                            }
+                        },
                         modifier = Modifier.weight(1f),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.secondary
                         )
                     ) {
-                        Text(stringResource(R.string.close_with_emoji))
+                        Text("Save")
                     }
+                }
+
+                // Dismiss button
+                Button(
+                    onClick = onDismiss,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    )
+                ) {
+                    Text(
+                        stringResource(R.string.close_with_emoji),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
         }
@@ -129,12 +157,16 @@ fun FileViewerDialog(
 } 
 
 /**
- * Attempts to open a file using system viewers or save to device
+ * Opens a file with the appropriate system viewer using FileProvider
  */
-private fun tryOpenFile(context: Context, packet: SignaloutFilePacket) {
+private fun openFileWithViewer(context: Context, packet: SignaloutFilePacket) {
     try {
-        // First try to save to temp file and open
-        val tempFile = File.createTempFile("signalout_", ".${packet.fileName.substringAfterLast(".")}", context.cacheDir)
+        // Save to temp file first
+        val tempFile = File.createTempFile(
+            "signalout_", 
+            ".${packet.fileName.substringAfterLast(".", "tmp")}", 
+            context.cacheDir
+        )
         tempFile.writeBytes(packet.content)
         tempFile.deleteOnExit()
 
@@ -153,10 +185,57 @@ private fun tryOpenFile(context: Context, packet: SignaloutFilePacket) {
         try {
             context.startActivity(intent)
         } catch (e: ActivityNotFoundException) {
-            // No app can handle this file type - just show a message
-            // In a real app, you'd show a toast or snackbar
+            Toast.makeText(context, "No app found to open this file type", Toast.LENGTH_SHORT).show()
         }
     } catch (e: Exception) {
-        // Handle any errors gracefully
+        Toast.makeText(context, "Error opening file: ${e.message}", Toast.LENGTH_SHORT).show()
+    }
+}
+
+/**
+ * Saves a file to the Downloads directory using MediaStore (API 29+) or direct file write (pre-29)
+ */
+private suspend fun saveFileToDownloads(context: Context, packet: SignaloutFilePacket): Boolean {
+    return withContext(Dispatchers.IO) {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                // API 29+: Use MediaStore
+                val contentValues = ContentValues().apply {
+                    put(MediaStore.Downloads.DISPLAY_NAME, packet.fileName)
+                    put(MediaStore.Downloads.MIME_TYPE, packet.mimeType)
+                    put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS + "/SignalOut")
+                    put(MediaStore.Downloads.IS_PENDING, 1)
+                }
+
+                val uri = context.contentResolver.insert(
+                    MediaStore.Downloads.EXTERNAL_CONTENT_URI,
+                    contentValues
+                ) ?: return@withContext false
+
+                context.contentResolver.openOutputStream(uri)?.use { outputStream ->
+                    outputStream.write(packet.content)
+                }
+
+                // Mark as complete
+                contentValues.clear()
+                contentValues.put(MediaStore.Downloads.IS_PENDING, 0)
+                context.contentResolver.update(uri, contentValues, null, null)
+
+                true
+            } else {
+                // Pre-API 29: Direct file write to Downloads
+                @Suppress("DEPRECATION")
+                val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                val signaloutDir = File(downloadsDir, "SignalOut")
+                signaloutDir.mkdirs()
+
+                val outputFile = File(signaloutDir, packet.fileName)
+                outputFile.writeBytes(packet.content)
+                true
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("FileViewer", "Failed to save file: ${e.message}", e)
+            false
+        }
     }
 }

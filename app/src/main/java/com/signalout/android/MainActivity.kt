@@ -309,9 +309,10 @@ class MainActivity : OrientationAwareActivity() {
                 val callState by callManager.callState.collectAsState()
                 
                 androidx.compose.foundation.layout.Box(modifier = Modifier.fillMaxSize()) {
-                    ChatScreen(viewModel = chatViewModel)
+                    val isCallActive = callState !is com.signalout.android.call.CallState.Idle && callState !is com.signalout.android.call.CallState.Ended
+                    ChatScreen(viewModel = chatViewModel, isCallActive = isCallActive)
                     
-                    if (callState !is com.signalout.android.call.CallState.Idle && callState !is com.signalout.android.call.CallState.Ended) {
+                    if (isCallActive) {
                         val isVideo = when (val state = callState) {
                             is com.signalout.android.call.CallState.Outgoing -> state.isVideo
                             is com.signalout.android.call.CallState.Incoming -> state.isVideo

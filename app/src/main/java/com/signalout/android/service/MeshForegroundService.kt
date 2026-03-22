@@ -125,6 +125,17 @@ class MeshForegroundService : Service() {
         notificationManager = NotificationManagerCompat.from(this)
         createChannel()
 
+        // CRITICAL: Call startForeground() immediately to satisfy the 5-second
+        // timeout enforced by startForegroundService(). On API 29 (Android 10),
+        // failing to do this causes a fatal RemoteServiceException crash.
+        try {
+            val safetyNotification = buildNotification(0)
+            startForegroundCompat(safetyNotification)
+            isInForeground = true
+        } catch (e: Exception) {
+            Log.w("MeshForegroundService", "Safety startForeground failed (may lack perms): ${e.message}")
+        }
+
         // Ensure mesh service exists in holder (create if needed)
         val existing = MeshServiceHolder.meshService
         if (existing != null) {

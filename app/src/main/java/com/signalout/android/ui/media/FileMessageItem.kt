@@ -10,6 +10,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -36,6 +41,8 @@ import com.signalout.android.model.SignaloutFilePacket
 fun FileMessageItem(
     packet: SignaloutFilePacket,
     onFileClick: () -> Unit,
+    uploadProgress: Float? = null,
+    onCancelUpload: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     var showDialog by remember { mutableStateOf(false) }
@@ -54,13 +61,41 @@ fun FileMessageItem(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // File icon
-            Icon(
-                imageVector = Icons.Filled.Description,
-                contentDescription = stringResource(com.signalout.android.R.string.cd_file),
-                tint = getFileIconColor(packet.fileName),
-                modifier = Modifier.size(32.dp)
-            )
+            // File icon and progress overlay
+            Box(contentAlignment = Alignment.Center) {
+                Icon(
+                    imageVector = Icons.Filled.Description,
+                    contentDescription = stringResource(com.signalout.android.R.string.cd_file),
+                    tint = getFileIconColor(packet.fileName),
+                    modifier = Modifier.size(32.dp)
+                )
+                
+                if (uploadProgress != null) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .background(Color.Black.copy(alpha = 0.4f), CircleShape)
+                            .clickable(enabled = onCancelUpload != null) { onCancelUpload?.invoke() },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(
+                            progress = uploadProgress,
+                            color = Color.White,
+                            trackColor = Color.White.copy(alpha = 0.3f),
+                            strokeWidth = 2.5.dp,
+                            modifier = Modifier.size(40.dp)
+                        )
+                        if (onCancelUpload != null) {
+                            Icon(
+                                imageVector = Icons.Filled.Close,
+                                contentDescription = "Cancel",
+                                tint = Color.White,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    }
+                }
+            }
 
             Column(
                 modifier = Modifier.weight(1f),
@@ -99,9 +134,8 @@ fun FileMessageItem(
             packet = packet,
             onDismiss = { showDialog = false },
             onSaveToDevice = { content, fileName ->
-                // In a real implementation, this would save to Downloads
-                // For now, just log that file was "saved"
-                android.util.Log.d("FileSharing", "Would save file: $fileName")
+                // Save is now handled inside FileViewerDialog itself via MediaStore/direct write
+                android.util.Log.d("FileSharing", "Save triggered for: $fileName")
             }
         )
     }

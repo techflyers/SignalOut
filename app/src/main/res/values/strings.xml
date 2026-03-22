@@ -87,6 +87,7 @@
   <string name="cd_handshake_in_progress">Handshake in progress</string>
   <string name="cd_encrypted">End-to-end encrypted</string>
   <string name="cd_handshake_failed">Handshake failed</string>
+  <string name="cd_settings">Settings</string>
 
   <!-- File viewer dialog -->
   <string name="file_viewer_title">📎 File Received</string>
@@ -119,6 +120,8 @@
   <string name="about_pow_off">pow off</string>
   <string name="about_pow_on">pow on</string>
   <string name="about_pow_tip">add proof of work to geohash messages for spam deterrence.</string>
+  <string name="about_typing_indicators">Typing Indicators</string>
+  <string name="about_typing_indicators_tip">show others when you are typing</string>
   <string name="about_pow_difficulty">difficulty: %1$d bits (~%2$s)</string>
   <string name="about_pow_difficulty_attempts">difficulty %1$d requires ~%2$s hash attempts</string>
   <string name="about_pow_desc_none">no proof of work required</string>
@@ -363,7 +366,7 @@
   <string name="grant_permissions">Grant Permissions</string>
   <string name="location_tracking_warning">signalout does NOT track your location</string>
   <string name="at_symbol">@</string>
-  <string name="app_brand">signalout/</string>
+  <string name="app_brand">SignalOut</string>
   <string name="channel_count_prefix"> · ⧉ </string>
   <string name="geohash_people_header">PEOPLE</string>
   <string name="nobody_around">nobody around...</string>

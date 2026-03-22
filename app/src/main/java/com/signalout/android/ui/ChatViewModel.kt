@@ -575,19 +575,21 @@ class ChatViewModel(
 
     // MARK: - Utility Functions
     
-    fun simulateTyping(username: String? = null) {
-        viewModelScope.launch {
-            if (username != null) {
-                state.setTypingUsers(listOf(username))
-            } else {
-                state.setIsPeerTyping(true)
-            }
-            delay(3000)
-            if (username != null) {
-                state.setTypingUsers(emptyList())
-            } else {
-                state.setIsPeerTyping(false)
-            }
+    private var typingTimeoutJob: kotlinx.coroutines.Job? = null
+    private var lastTypingSentTime = 0L
+
+    fun sendTypingIndicator(peerID: String? = null) {
+        val targetPeer = peerID ?: state.getPrivateChatSheetPeerValue() ?: state.selectedPrivateChatPeer.value
+        if (targetPeer == null) {
+            // Un-comment or leave this subtle so it doesn't spam Logcat when typing in a public channel:
+            // android.util.Log.v("TypingIndicator", "Aborting send: not in a private chat (targetPeer is null)")
+            return
+        }
+        val now = System.currentTimeMillis()
+        if (now - lastTypingSentTime > 2000) {
+            lastTypingSentTime = now
+            android.util.Log.d("TypingIndicator", "Sending typing indicator to peer: $targetPeer")
+            meshService.sendTypingIndicator(targetPeer)
         }
     }
     
@@ -908,6 +910,22 @@ class ChatViewModel(
     
     override fun isFavorite(peerID: String): Boolean {
         return meshDelegateHandler.isFavorite(peerID)
+    }
+    
+    override fun onPeerTyping(peerID: String) {
+        val currentPrivateChat = state.getPrivateChatSheetPeerValue() ?: state.selectedPrivateChatPeer.value
+        android.util.Log.d("TypingIndicator", "Received typing indicator from peer: $peerID. Current chat is: $currentPrivateChat")
+        if (peerID == currentPrivateChat) {
+            // Found a match with our current chat
+            android.util.Log.d("TypingIndicator", "Match found! Setting isPeerTyping to true")
+            state.setIsPeerTyping(true)
+            
+            typingTimeoutJob?.cancel()
+            typingTimeoutJob = viewModelScope.launch {
+                delay(3000)
+                state.setIsPeerTyping(false)
+            }
+        }
     }
     
     // registerPeerPublicKey REMOVED - fingerprints now handled centrally in PeerManager

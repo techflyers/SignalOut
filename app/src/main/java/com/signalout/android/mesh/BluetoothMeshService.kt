@@ -449,6 +449,16 @@ class BluetoothMeshService(private val context: Context) {
         
         // PacketProcessor delegates
         packetProcessor.delegate = object : PacketProcessorDelegate {
+            override fun handleTypingIndicator(routed: RoutedPacket) {
+                if (!com.signalout.android.ui.TypingIndicatorPreferences.isEnabled(context)) {
+                    android.util.Log.d("TypingIndicator", "MeshService received typing indicator but disabled by user prefs")
+                    return
+                }
+                val peerID = routed.peerID ?: return
+                android.util.Log.d("TypingIndicator", "MeshService routing typing indicator from $peerID to UI")
+                delegate?.onPeerTyping(peerID)
+            }
+
             override fun handleCallSignaling(routed: RoutedPacket) {
                 try {
                     val peerID = routed.peerID ?: return
@@ -763,6 +773,36 @@ class BluetoothMeshService(private val context: Context) {
             }
         } catch (e: Exception) {
             Log.e(TAG, "❌ sendCallSignaling failed: ${e.message}", e)
+        }
+    }
+
+    /**
+     * Send typing indicator
+     */
+    fun sendTypingIndicator(recipientPeerID: String) {
+        if (!com.signalout.android.ui.TypingIndicatorPreferences.isEnabled(context)) {
+            android.util.Log.d("TypingIndicator", "MeshService not sending typing indicator because it is disabled in settings")
+            return
+        }
+        
+        try {
+            android.util.Log.d("TypingIndicator", "MeshService building and sending typing packet to $recipientPeerID")
+            serviceScope.launch {
+                val packet = SignaloutPacket(
+                    version = 1u,
+                    type = MessageType.TYPING_INDICATOR.value,
+                    senderID = hexStringToByteArray(myPeerID),
+                    recipientID = hexStringToByteArray(recipientPeerID),
+                    timestamp = System.currentTimeMillis().toULong(),
+                    payload = ByteArray(0), // No payload needed
+                    signature = null,
+                    ttl = com.signalout.android.util.AppConstants.MESSAGE_TTL_HOPS
+                )
+                val signed = signPacketBeforeBroadcast(packet)
+                connectionManager.broadcastPacket(RoutedPacket(signed))
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ sendTypingIndicator failed: ${e.message}", e)
         }
     }
 
@@ -1471,5 +1511,6 @@ interface BluetoothMeshDelegate {
     fun decryptChannelMessage(encryptedContent: ByteArray, channel: String): String?
     fun getNickname(): String?
     fun isFavorite(peerID: String): Boolean
+    fun onPeerTyping(peerID: String)
     // registerPeerPublicKey REMOVED - fingerprints now handled centrally in PeerManager
 }

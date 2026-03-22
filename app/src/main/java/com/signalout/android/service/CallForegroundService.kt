@@ -51,8 +51,28 @@ class CallForegroundService : Service() {
             }
         }
 
-        val notification = buildNotification("Call in progress", "BitChat call")
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        val notification = buildNotification("Call in progress", "SignalOut call")
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            // API 34+: declare all foreground service types used during calls
+            val serviceType = android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_PHONE_CALL or
+                android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE or
+                android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA
+            try {
+                startForeground(NOTIFICATION_ID, notification, serviceType)
+            } catch (e: SecurityException) {
+                // Fallback: try without camera (voice-only call)
+                Log.w(TAG, "Failed with camera type, falling back: ${e.message}")
+                try {
+                    startForeground(NOTIFICATION_ID, notification,
+                        android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_PHONE_CALL or
+                            android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE)
+                } catch (e2: SecurityException) {
+                    Log.w(TAG, "Failed with microphone type, minimal fallback: ${e2.message}")
+                    startForeground(NOTIFICATION_ID, notification,
+                        android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_PHONE_CALL)
+                }
+            }
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             startForeground(NOTIFICATION_ID, notification,
                 android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_PHONE_CALL)
         } else {
@@ -95,7 +115,7 @@ class CallForegroundService : Service() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "BitChat Calls",
+                "SignalOut Calls",
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = "Active call notifications"

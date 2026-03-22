@@ -348,7 +348,7 @@ private fun MainHeader(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Left: App brand + nickname
+        // Left: App brand (logo + name like WhatsApp)
         Row(
             modifier = Modifier.fillMaxHeight(),
             verticalAlignment = Alignment.CenterVertically
@@ -361,13 +361,6 @@ private fun MainHeader(
                     onSingleClick = onTitleClick,
                     onTripleClick = onTripleTitleClick
                 )
-            )
-
-            Spacer(modifier = Modifier.width(4.dp))
-
-            NicknameEditor(
-                value = nickname,
-                onValueChange = onNicknameChange
             )
         }
 
@@ -418,11 +411,18 @@ private fun MainHeader(
                 }
             }
 
-            // Location Notes button
-            LocationNotesButton(
-                viewModel = viewModel,
-                onClick = onLocationNotesClick
-            )
+            // Settings icon (replaces Location Notes button)
+            IconButton(
+                onClick = onTitleClick,
+                modifier = Modifier.size(32.dp)
+            ) {
+                Icon(
+                    Icons.Filled.Settings,
+                    contentDescription = stringResource(R.string.cd_settings),
+                    tint = Color.White,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
 
             // Tor status
             TorStatusDot(

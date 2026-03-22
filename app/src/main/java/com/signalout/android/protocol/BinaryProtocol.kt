@@ -23,7 +23,8 @@ enum class MessageType(val value: UByte) {
     CALL_ICE(0x32u), // ICE candidate
     CALL_HANGUP(0x33u), // End call
     CALL_REJECT(0x34u), // Reject incoming call
-    CALL_BUSY(0x35u); // Peer is busy
+    CALL_BUSY(0x35u),  // Peer is busy
+    TYPING_INDICATOR(0x40u); // Typing indicator (lightweight, no payload)
 
     companion object {
         fun fromValue(value: UByte): MessageType? {

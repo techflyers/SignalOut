@@ -32,6 +32,10 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
     <!-- Phone call foreground service type for voice/video calls -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_PHONE_CALL" />
+    <!-- Microphone foreground service type required for calls on API 34+ -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+    <!-- Camera foreground service type required for video calls on API 34+ -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     
     <!-- Microphone for voice notes & calls -->
@@ -119,7 +123,7 @@
         <service
             android:name=".service.CallForegroundService"
             android:exported="false"
-            android:foregroundServiceType="phoneCall"
+            android:foregroundServiceType="phoneCall|microphone|camera"
             tools:ignore="DataExtractionRules">
         </service>
 
